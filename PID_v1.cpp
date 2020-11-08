@@ -34,7 +34,7 @@ PID::PID(double* Input, double* Output, double* Setpoint,
     PID::SetControllerDirection(ControllerDirection);
     PID::SetTunings(Kp, Ki, Kd, POn);
 
-    lastTime = millis()-SampleTime;
+    lastTime = micros()-SampleTime;
 }
 
 /*Constructor (...)*********************************************************
@@ -59,7 +59,7 @@ myOutput = Output;
     PID::SetControllerDirection(ControllerDirection);
     PID::SetTunings(Kp, Ki, Kd, P_ON_E);
 
-    lastTime = millis()-SampleTime;
+    lastTime = micros()-SampleTime;
 }
 
 
@@ -93,12 +93,12 @@ bool PID::Compute()
           else
             output=-k0ff+kpff*target;
        }
-      outputSum+= (ki * error);
       
       if(lastSetpoint!=*mySetpoint)// when set point change adjust integral erreur
-      if(lastSetpoint>0)
-      outputSum=outputSum/lastSetpoint*(*mySetpoint);
-      /*
+      if(lastSetpoint!=0)
+      outputSum=(outputSum*(*mySetpoint))/lastSetpoint;
+       outputSum+= (ki * error);
+     /*
       if(lastSetpoint!=*mySetpoint)
       outputSum=0;
       */
@@ -130,7 +130,13 @@ bool PID::Compute()
    }
    else return false;
 }
-
+/** is clamp
+return true when the output is at max/min value
+*/
+bool PID::isClamp()
+{
+  return  (*myOutput == outMax) || (*myOutput == outMin);
+}
 /**
 
 see :https://en.wikipedia.org/wiki/Feed_forward_(control)
@@ -140,7 +146,7 @@ void PID::setFeedForward(double K0,double Kp)
   
   k0ff=K0;
   kpff=Kp;
-  lastTime = millis()-SampleTime;// recompute now
+  lastTime = micros()-SampleTime;// recompute now
 }
 
 
@@ -218,7 +224,7 @@ void PID::SetTunings(double Kp, double Ki, double Kd, int POn)
       ki = (0 - ki);
       kd = (0 - kd);
    }
-  lastTime = millis()-SampleTime;
+  lastTime = micros()-SampleTime;
 }
 
 /* SetTunings(...)*************************************************************
@@ -298,6 +304,11 @@ void PID::Initialize()
    lastInput = *myInput;
    if(outputSum > outMax) outputSum = outMax;
    else if(outputSum < outMin) outputSum = outMin;
+   
+   
+    unsigned long now = micros();
+   lastTime = (now - SampleTime*2);
+
 }
 
 /* SetControllerDirection(...)*************************************************

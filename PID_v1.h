@@ -15,7 +15,7 @@ class PID
   #define REVERSE  1
   #define P_ON_M 0
   #define P_ON_E 1
-
+  bool isClamp();
   //commonly used functions **************************************************************************
     PID(double*, double*, double*,        // * constructor.  links the PID to the Input, Output, and 
         double, double, double, int, int);//   Setpoint.  Initial tuning parameters are also set here.
